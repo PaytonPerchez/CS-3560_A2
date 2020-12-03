@@ -19,6 +19,7 @@ import visitorPackage.CountMessageVisitor;
 import visitorPackage.CountUserGroupVisitor;
 import visitorPackage.CountUserVisitor;
 import visitorPackage.PositiveMessageVisitor;
+import visitorPackage.UpdateTimeVisitor;
 
 /**
  * The admin control panel used as the main GUI for the mini twitter application.
@@ -48,7 +49,7 @@ public class AdminControlPanel {
 		
 		//Tree components
 		TreeView<TwitterEntry> treeView = new TreeView<TwitterEntry>();
-		treeView.setPrefHeight(255);
+		treeView.setPrefHeight(285);
 		TreeItem<TwitterEntry> root = new TreeItem<TwitterEntry>(new UserGroup("Root"), new ImageView(folderIcon));
 		root.setExpanded(true);
 		treeView.setRoot(root);
@@ -256,11 +257,19 @@ public class AdminControlPanel {
 					feed.setPrefHeight(150);
 					feed.setPrefWidth(150);
 					
+					//Label indicating the time at which the User was created
+					Label creationTimeLabel = new Label("Creation time: " + selectedUser.getCreationTime() + "ms");
+					
+					//Combine time labels into a VBox
+					VBox timeLabels = new VBox(creationTimeLabel, selectedUser.getUpdateTimeLabel());
+					timeLabels.setPadding(new Insets(7));
+					timeLabels.setSpacing(5);
+					
 					//Combine user controls into a VBox
-					userControlPanel.getChildren().addAll(followControls, following, tweetControls, feed, userMessageLabel);
+					userControlPanel.getChildren().addAll(followControls, following, tweetControls, feed, timeLabels, userMessageLabel);
 					
 					//Display the user control panel
-					Scene userScene = new Scene(userControlPanel);
+					Scene userScene = new Scene(userControlPanel, 245, 480);
 					Stage userView = new Stage();
 					userView.setTitle(selectedItem.getValue().toString());
 					userView.setScene(userScene);
@@ -338,11 +347,50 @@ public class AdminControlPanel {
 			
 		});
 		
+		Button showValidIDs = new Button("Check ID Validity");
+		showValidIDs.setPrefWidth(152);
+		showValidIDs.setOnAction(e -> {
+			
+			//Check the validity of all entry IDs
+			if(checkIDValidity((UserGroup)(treeView.getRoot().getValue()))) {
+				
+				adminMessageLabel.setText("All entry IDs are valid");
+				
+			}else {
+				
+				adminMessageLabel.setText("Invalid entry IDs exist");
+				
+			}//end if
+			
+		});
+		
+		Button getLastUpdatedUser = new Button("Show Last User Updated");
+		getLastUpdatedUser.setPrefWidth(152);
+		getLastUpdatedUser.setOnAction(e -> {
+			
+			//Find the User that has been updated most recently
+			UpdateTimeVisitor visitor = new UpdateTimeVisitor();
+			visitor.visitEntry((UserGroup)treeView.getRoot().getValue());
+			
+			if(visitor.getLastUpdatedUser() == null) {
+				
+				adminMessageLabel.setText("No users exist yet");
+				
+			}else {
+				
+				adminMessageLabel.setText(visitor.getLastUpdatedUser().toString() + " was the last updated User");
+				
+			}//end if
+			
+		});
+		
 		//Combine the analytics controls into a GridPane, format: (Node, column, row)
 		analyticsControls.add(showUserTotal, 0, 0);
 		analyticsControls.add(showMessagesTotal, 0, 1);
 		analyticsControls.add(showGroupTotal, 1, 0);
 		analyticsControls.add(showPositivePercentage, 1, 1);
+		analyticsControls.add(showValidIDs, 0, 2);
+		analyticsControls.add(getLastUpdatedUser, 1, 2);
 		
 		//Combine all the admin controls into a VBox
 		adminControls.getChildren().addAll(addControls, openUserView, analyticsControls, adminMessageLabel);
@@ -439,6 +487,39 @@ public class AdminControlPanel {
 		return null;
 		
 	}//end findGroup
+	
+	/**
+	 * Determines whether or not the IDs of all Users and UserGroups are valid (no duplicates and no spaces).
+	 * @param root The given UserGroup.
+	 * @return True if all TwitterEntries meet the requirements for validity.
+	 */
+	private boolean checkIDValidity(UserGroup root) {
+		
+		for(TwitterEntry entry : root.getEntries()) {
+			
+			//Spaces are invalid
+			if(entry.toString().contains(" ")) {
+				
+				return false;
+				
+			}//end if
+			
+			//Check all entries of the UserGroup
+			if(entry instanceof UserGroup) {
+				
+				if(!checkIDValidity((UserGroup)entry)) {
+					
+					return false;
+					
+				}//end if
+				
+			}//end if
+			
+		}//end if
+		
+		return true;
+		
+	}//end if
 	
 	/**
 	 * Returns the reference to an AdminControlPanel object and instantiates one if the reference points to null.

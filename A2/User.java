@@ -1,6 +1,7 @@
 package A2;
 
 import javafx.scene.control.ListView;
+import javafx.scene.control.Label;
 import visitorPackage.EntryVisitor;
 
 /**
@@ -12,6 +13,9 @@ public class User extends Subject implements Observer, TwitterEntry  {
 	private String ID;
 	private ListView<String> following;
 	private ListView<String> feed;
+	private long creationTime;
+	private long lastUpdateTime;
+	private Label updateTimeLabel;
 	
 	/**
 	 * Instantiates a new user with the given ID.
@@ -24,6 +28,9 @@ public class User extends Subject implements Observer, TwitterEntry  {
 		following.getItems().add("Current Following");
 		feed = new ListView<>();
 		feed.getItems().add("News Feed");
+		creationTime = System.currentTimeMillis();
+		lastUpdateTime = creationTime;
+		updateTimeLabel = new Label("Update time: " + lastUpdateTime + "ms");
 		
 	}//end constructor
 	
@@ -48,6 +55,36 @@ public class User extends Subject implements Observer, TwitterEntry  {
 	}//end getFollowing
 	
 	/**
+	 * Returns the time in milliseconds at which the user was created.
+	 * @return The time the user was created (in milliseconds).
+	 */
+	public long getCreationTime() {
+		
+		return creationTime;
+		
+	}//end getCreationTime
+	
+	/**
+	 * Returns the time in milliseconds at which the user's feed was updated.
+	 * @return The time the user's feed was updated (in milliseconds).
+	 */
+	public long getLastUpdateTime() {
+		
+		return lastUpdateTime;
+		
+	}//end getLastUpdateTime
+	
+	/**
+	 * Returns a label containing the update time of the User.
+	 * @return Label containing User's update time.
+	 */
+	public Label getUpdateTimeLabel() {
+		
+		return updateTimeLabel;
+		
+	}//end getUpdateTimeLabel
+	
+	/**
 	 * Returns the latest tweet the user made.
 	 * @return The latest tweet from the user.
 	 */
@@ -64,6 +101,8 @@ public class User extends Subject implements Observer, TwitterEntry  {
 	public void tweet(String message) {
 		
 		feed.getItems().add(" - You: " + message);
+		lastUpdateTime = System.currentTimeMillis();
+		updateTimeLabel.setText("Update time: " + lastUpdateTime + "ms");
 		notifyObservers();
 		
 	}//end tweet
@@ -93,6 +132,8 @@ public class User extends Subject implements Observer, TwitterEntry  {
 		if(subject instanceof User) {
 			
 			feed.getItems().add(" - " + subject.toString() + ": " + ((User)subject).getLatestTweet().substring(7));
+			lastUpdateTime = System.currentTimeMillis();
+			updateTimeLabel.setText("Update time: " + lastUpdateTime + "ms");
 			
 		}//end if
 		

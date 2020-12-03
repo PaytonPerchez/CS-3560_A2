@@ -11,6 +11,7 @@ public class UserGroup implements TwitterEntry {
 
 	private String ID;
 	private ArrayList<TwitterEntry> users;
+	private long creationTime;
 	
 	/**
 	 * Instantiates a new UserGroup with the specified ID.
@@ -20,6 +21,7 @@ public class UserGroup implements TwitterEntry {
 		
 		ID = groupID;
 		users = new ArrayList<>();
+		creationTime = System.currentTimeMillis();
 		
 	}//end constructor
 	
@@ -42,6 +44,16 @@ public class UserGroup implements TwitterEntry {
 		return users;
 		
 	}//end getEntries
+	
+	/**
+	 * Returns the time in milliseconds at which the group was created.
+	 * @return The time the group was created (in milliseconds).
+	 */
+	public long getCreationTime() {
+		
+		return creationTime;
+		
+	}//end getCreationTime
 	
 	/**
 	 * Allows the visitor to perform an operation on the group.
